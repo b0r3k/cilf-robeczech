@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 colors_url = "https://cs.wikipedia.org/wiki/Seznam_barev"
+cities_url = "https://cs.wikipedia.org/wiki/Seznam_m%C4%9Bst_v_%C4%8Cesku_podle_po%C4%8Dtu_obyvatel"
 
 class WikiScraper:
     def __init__(self, url: str) -> None:
@@ -30,3 +31,7 @@ class WikiScraper:
 ws = WikiScraper(colors_url)
 ws.filter_data("Barva")
 ws.save_table("lexicons/colors.json")
+
+ws = WikiScraper(cities_url)
+ws.filter_data("Město")
+ws.save_table("lexicons/cities.json")
