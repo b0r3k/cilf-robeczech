@@ -27,7 +27,7 @@ common_names = df_names[df_names[3000] > 200]["JMÉNO"].str.lower()
 common_names.drop(index=0, inplace=True)
 
 # Save common names to JSON file
-common_names.to_json("lexicons/common_names.json", orient="records", force_ascii=False, indent=4)
+common_names.to_json("lexicons/names.json", orient="records", force_ascii=False, indent=4)
 
 
 # Load data from Excel file into Pandas DataFrame
@@ -40,4 +40,4 @@ common_surnames = df_surnames[df_surnames[3000] > 1000]["PŘÍJMENÍ"].str.lower
 common_surnames.drop(index=0, inplace=True)
 
 # Save common surnames to JSON file
-common_surnames.to_json("lexicons/common_surnames.json", orient="records", force_ascii=False, indent=4)
+common_surnames.to_json("lexicons/surnames.json", orient="records", force_ascii=False, indent=4)

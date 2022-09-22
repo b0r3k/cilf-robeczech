@@ -21,4 +21,4 @@ colors = df['Barva']
 colors = colors.loc[~colors.str.contains(" ")]
 
 # Save common surnames to JSON file
-colors.to_json("lexicons/common_colors.json", orient="records", force_ascii=False, indent=4)
+colors.to_json("lexicons/colors.json", orient="records", force_ascii=False, indent=4)
