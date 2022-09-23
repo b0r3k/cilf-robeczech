@@ -1,0 +1,6 @@
+pandas
+xlrd
+transformers
+numpy
+bs4
+lxml
