@@ -18,25 +18,40 @@ import pandas as pd
 # 64998  VASILIKI-ZUZANA  0     0     0     0     0     0     0     0     0     0  ...     0     0     0     0     0     0     0     0     0     0     1
 
 # Load data from Excel file into Pandas DataFrame
-df_dict = pd.read_excel('lexicons/četnost-jména-dnar.xls', sheet_name=None)
+df_dict = pd.read_excel('lexicons/retrieval/četnost-jména-dnar.xls', sheet_name=None)
 df_names = pd.concat(df_dict.values())
 
 # Filter names with 200 or more occurances
 df_names.sort_values(by=[3000], inplace=True, ascending=False, ignore_index=True)
-common_names = df_names[df_names[3000] > 200]["JMÉNO"].str.lower()
+common_names = df_names[df_names[3000] > 200]["JMÉNO"].str.capitalize()
 common_names.drop(index=0, inplace=True)
+female_mask = common_names.str.endswith(("e", "a", "y"))
+female_names = common_names[female_mask]
+male_names = common_names[~female_mask]
+
+# Misclassified names:
+misclas_female = pd.Series(['Dagmar', 'Doris', 'Edeltraud', 'Edith', 'Elen', 'Elisabeth', 'Elizabeth', 'Ester', 
+'Ingeborg', 'Ingrid', 'Isabel', 'Jenifer', 'Jennifer', 'Karin', 'Katrin', 'Lilian', 'Lilien', 'Margit', 'Miriam', 
+'Natali', 'Nicol', 'Nikol', 'Noemi', 'Ruth', 'Sarah', 'Vivien'])
+misclas_male = pd.Series(['Danny'])
+
+female_names = pd.concat([female_names, misclas_female])
+female_names = female_names[~female_names.isin(misclas_male)].sort_values()
+
+male_names = pd.concat([male_names, misclas_male])
+male_names = male_names[~male_names.isin(pd.concat([misclas_female, pd.Series(['Nezjištěno'])]))].sort_values()
 
 # Save common names to JSON file
-common_names.to_json("lexicons/names.json", orient="records", force_ascii=False, indent=4)
-
+female_names.to_json("lexicons/female_names.json", orient="records", force_ascii=False, indent=4)
+male_names.to_json("lexicons/male_names.json", orient="records", force_ascii=False, indent=4)
 
 # Load data from Excel file into Pandas DataFrame
-df_dict = pd.read_excel('lexicons/četnost-příjmení-dnar.xls', sheet_name=None)
+df_dict = pd.read_excel('lexicons/retrieval/četnost-příjmení-dnar.xls', sheet_name=None)
 df_surnames = pd.concat(df_dict.values())
 
 # Filter surnames with 1000 or more occurances
 df_surnames.sort_values(by=[3000], inplace=True, ascending=False, ignore_index=True)
-common_surnames = df_surnames[df_surnames[3000] > 1000]["PŘÍJMENÍ"].str.lower()
+common_surnames = df_surnames[df_surnames[3000] > 1000]["PŘÍJMENÍ"].str.capitalize()
 common_surnames.drop(index=0, inplace=True)
 
 # Save common surnames to JSON file
