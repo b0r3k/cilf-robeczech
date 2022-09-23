@@ -27,6 +27,12 @@ class Editor:
             "[ZENA_PRIJMENI]": "female_surnames"
         }
 
+    def list_special_tokens(self):
+        """
+        Return valid special tokens for the templates.
+        """
+        return list(self.spec_tokens_mapping.keys())
+
     def _load_lexicons(self):
         """ 
         Load all lexicons from the lexicons directory into memory. 
@@ -188,10 +194,12 @@ class Editor:
 
 if __name__ == "__main__":
     e = Editor()
-    e.template(" V [FORMAT] je krásně .", ["příroda"])
-    for _ in range(2):
+    print(e.list_special_tokens())
+    print(e.template(" V [FORMAT] je krásně .", ["příroda", "město", "les", "Praha"]))
+    for _ in range(1):
         print(e.template(" Bez [ZENA_JMENO] by se nám to dnes nepodařilo .", iterations=3))
         print(e.template(" [MUZ_JMENO] se má výborně ."))
         print(e.template(" Bydlí v [MESTO] ."))
         print(e.template(" Přestěhoval se sem v [MESIC] ."))
+        print(e.template(" Bylo zrovna [DEN] ."))
         print(e.template(" Mám rád [MASK] .", iterations=3))
