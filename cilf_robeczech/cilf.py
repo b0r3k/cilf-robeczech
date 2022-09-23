@@ -20,6 +20,13 @@ class Editor:
         self.model = TFAutoModelForMaskedLM.from_pretrained(model_checkpoint)
         self.tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
+        self.spec_tokens_mapping = {
+            "[FORMAT]": None, "[MASK]": None, "[DEN]": "days", "[MESIC]": "months", 
+            "[MUZ_JMENO]": "male_names", "[ZENA_JMENO]": "female_names", 
+            "[MESTO]": "cities", "[BARVA]": "colors", "[MUZ_PRIJMENI]": "male_surnames", 
+            "[ZENA_PRIJMENI]": "female_surnames"
+        }
+
     def _load_lexicons(self):
         """ 
         Load all lexicons from the lexicons directory into memory. 
@@ -56,20 +63,15 @@ class Editor:
         mask_index = None
 
         tokens_in_template = []
-        spec_tokens_mapping = {
-            "[FORMAT]": None, "[MASK]": None, "[DEN]": "days", "[MĚSÍC]": "months", 
-            "[MUŽSKÉ_JMÉNO]": "male_names", "[ŽENSKÉ_JMÉNO]": "female_names", 
-            "[MĚSTO]": "cities", "[BARVA]": "colors", "[MUŽSKÉ_PŘÍJMENÍ]": "male_surnames", 
-            "[ŽENSKÉ_PŘÍJMENÍ]": "female_surnames"
-        }
-        for spec_token in spec_tokens_mapping:
+
+        for spec_token in self.spec_tokens_mapping:
             if spec_token in tokens_set: tokens_in_template.append(spec_token)
 
         assert len(tokens_in_template) == 1, "Only one type of [SPECIAL] tokens is allowed in the sentence."
         spec_token = tokens_in_template[0]
         assert template.count(spec_token) == 1, "Only one [SPECIAL] token is allowed in the sentence."
         mask_index = tokens.index(spec_token)
-        lexicon_type = spec_tokens_mapping[spec_token]
+        lexicon_type = self.spec_tokens_mapping[spec_token]
 
         # Correct word form requested
         if spec_token == "[FORMAT]":
@@ -188,8 +190,8 @@ if __name__ == "__main__":
     e = Editor()
     e.template(" V [FORMAT] je krásně .", ["příroda"])
     for _ in range(2):
-        print(e.template(" Bez [ŽENSKÉ_JMÉNO] by se nám to dnes nepodařilo .", iterations=3))
-        print(e.template(" [MUŽSKÉ_JMÉNO] se má výborně ."))
-        print(e.template(" Bydlí v [MĚSTO] ."))
-        print(e.template(" Přestěhoval se sem v [MĚSÍC] ."))
+        print(e.template(" Bez [ZENA_JMENO] by se nám to dnes nepodařilo .", iterations=3))
+        print(e.template(" [MUZ_JMENO] se má výborně ."))
+        print(e.template(" Bydlí v [MESTO] ."))
+        print(e.template(" Přestěhoval se sem v [MESIC] ."))
         print(e.template(" Mám rád [MASK] .", iterations=3))
