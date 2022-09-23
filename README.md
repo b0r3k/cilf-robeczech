@@ -5,53 +5,61 @@ The tool allows for creating Czech sentences using *templates*. This does not so
 
 ## Acknowledgements
 
+The project was inspired by [checklist](https://github.com/marcotcr/checklist):
+- Marco Tulio Ribeiro, Tongshuang Wu, Carlos Guestrin, and Sameer Singh. 2020. Beyond Accuracy: Behavioral Testing of NLP Models with CheckList. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics, pages 4902–4912, Online. Association for Computational Linguistics.
+
 The tool extensively uses RobeCzech (downloaded from [HuggingFace models](https://huggingface.co/ufal/robeczech-base)):
 - Milan Straka, Jakub Náplava, Jana Straková and David Samuel: Czech RoBERTa, a monolingual contextualized language representation model. Accepted to TSD 2021.
 
 and MorphoDiTa (its [web API hosted on Lindat](https://lindat.mff.cuni.cz/services/morphodita/api-reference.php)):
-- (Straková et al. 2014) Straková Jana, Straka Milan and Hajič Jan. Open-Source Tools for Morphology, Lemmatization, POS Tagging and Named Entity Recognition. In Proceedings of 52nd Annual Meeting of the Association for Computational Linguistics: System Demonstrations, pages 13-18, Baltimore, Maryland, June 2014. Association for Computational Linguistics. 
+- (Straková et al. 2014) Straková Jana, Straka Milan and Hajič Jan. Open-Source Tools for Morphology, Lemmatization, POS Tagging and Named Entity Recognition. In Proceedings of 52nd Annual Meeting of the Association for Computational Linguistics: System Demonstrations, pages 13-18, Baltimore, Maryland, June 2014. Association for Computational Linguistics.
 
 ## Installation
 
-For normal use, install `requirements.txt` (usually in a `venv`).
-
-For development, install `requirements-dev.txt`. Installation using `python3 setup.py install` may also be necessary for the more complicated python imports to work.
+The whole installation is usually done in a `venv`. First install `requirements.txt` (`requirements-dev.txt` for development):
+```
+pip install -r requirements.txt
+```
+Then install the package itself:
+```
+python3 setup.py install
+```
+Tested with python3.10, for older versions different versions of modules may be needed.
 
 ## Usage
-The easiest way is just to import `Editor` from the [`/cilf_robeczech/cilf.py`](/cilf_robeczech/cilf.py) file.
+The easiest way is to just import `Editor`:
 ```
 from cilf_robeczech.cilf import Editor
 
 e = Editor()
 ```
 
-### Filling a template with provided word(s) in a correct form
+### Filling a template with provided words in a correct form
 
 The editor allows users to fill in templates with lists of 'fill-ins' in correct forms. For example:
 ```
-e.template(" V [FORMAT] je krásně .", ["příroda", "město", "les", "Praha"]
+e.template(" V [FORMAT] je krásně .", ["příroda", "město", "les", "Praha"])
 
->>> ['V přírodě je krásně .', 'V městě je krásně .', 'V lese je krásně .', 'V Praze je krásně .']
-
-Unfortunately the tool is not able to fill some words in some context and therefore sometimes returns less templates.
+Example output: ['V přírodě je krásně .', 'V městě je krásně .', 'V lese je krásně .', 'V Praze je krásně .']
 ```
+Unfortunately the tool is not able to fill some words in some context and therefore sometimes returns less templates.
 
-### Using lexicons to fill in specific type of word in a correct form
+### Using lexicons to fill in a specific type of word in a correct form
 
 The editor has built-in lexicons, which user can use in templates without having to specify the fill-in values. If user specifies `iterations`, that many filled in templates should be returned.
 ```
 e.template(" Bydlí v [MESTO] .", iterations=3)
 
->>> ['Bydlí v Aši .', 'Bydlí v Kouřimi .', 'Bydlí v Čelákovicích .']
+Example output: ['Bydlí v Aši .', 'Bydlí v Kouřimi .', 'Bydlí v Čelákovicích .']
 ```
 Again fewer templates may be returned because correct word form could not be found.
 
-### Letting the model suggest word(s) that fit the context
+### Letting the model suggest a word that fits the context
 User can use a masked language model to fill-in templates directly by using the special tag `[MASK]`:
 ```
 e.template(" Mám rád [MASK] .", iterations=2)
 
->>> ['Mám rád zvířata .', 'Mám rád hudbu .']
+Example output: ['Mám rád zvířata .', 'Mám rád hudbu .']
 ```
 Again fewer templates may be returned because correct word form could not be found.
 
