@@ -1,2 +1,2 @@
-transformers
-tensorflow
+transformers==4.22.1
+tensorflow==2.10.0
