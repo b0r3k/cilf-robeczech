@@ -49,66 +49,64 @@ class Editor:
         Returns:
             List(str): templates with the [TOKEN] replaced by word in correct form of length `iterations`.
         """
+
         tokens = template.split()
         tokens_set = set(tokens)
         word_forms = []
+        mask_index = None
+
+        tokens_in_template = []
+        spec_tokens_mapping = {
+            "[FORMAT]": None, "[MASK]": None, "[DEN]": "days", "[MĚSÍC]": "months", 
+            "[MUŽSKÉ_JMÉNO]": "male_names", "[ŽENSKÉ_JMÉNO]": "female_names", 
+            "[MĚSTO]": "cities", "[BARVA]": "colors", "[MUŽSKÉ_PŘÍJMENÍ]": "male_surnames", 
+            "[ŽENSKÉ_PŘÍJMENÍ]": "female_surnames"
+        }
+        for spec_token in spec_tokens_mapping:
+            if spec_token in tokens_set: tokens_in_template.append(spec_token)
+
+        assert len(tokens_in_template) == 1, "Only one type of [SPECIAL] tokens is allowed in the sentence."
+        spec_token = tokens_in_template[0]
+        assert template.count(spec_token) == 1, "Only one [SPECIAL] token is allowed in the sentence."
+        mask_index = tokens.index(spec_token)
+        lexicon_type = spec_tokens_mapping[spec_token]
 
         # Correct word form requested
-        if "[FORMAT]" in tokens_set:
+        if spec_token == "[FORMAT]":
+            assert isinstance(words, list), "Words must be a list of strings."
             mask_index = tokens.index("[FORMAT]")
             tokens[mask_index] = "[MASK]"
             template = " ".join(tokens)
             for w in words:
-                word_forms.append(self._get_correct_word_form(w, template))
+                word_forms.extend(self._get_correct_word_form(w, template))
 
         # Language model suggestions requested
-        elif "[MASK]" in tokens_set:
+        elif spec_token == "[MASK]":
+            assert iterations >= 1, "Iterations must be >= 1."
+            mask_index = tokens.index("[MASK]")
             words = None
             template = template.strip()
             word_forms = self._generate_suggestions(template, suggestions_count = iterations)
 
         # Lexicon lookup requested
         else:
-            lexicon_type = ""
-            words = None
-            if "[DEN]" in tokens_set:
-                lexicon_type = "days"
-                mask_index = tokens.index("[DEN]")
-            elif "[MĚSÍC]" in tokens_set:
-                lexicon_type = "months"
-                mask_index = tokens.index("[MĚSÍC]")
-            elif "[MUŽSKÉ_JMÉNO]" in tokens_set:
-                lexicon_type = "male_names"
-                mask_index = tokens.index("[MUŽSKÉ_JMÉNO]")
-            elif "[ŽENSKÉ_JMÉNO]" in tokens_set:
-                lexicon_type = "female_names"
-                mask_index = tokens.index("[ŽENSKÉ_JMÉNO]")
-            elif "[MĚSTO]" in tokens_set:
-                lexicon_type = "cities"
-                mask_index = tokens.index("[MĚSTO]")
-            elif "[BARVA]" in tokens_set:
-                lexicon_type = "colors"
-                mask_index = tokens.index("[BARVA]")
-            elif "[MUŽSKÉ_PŘÍJMENÍ]" in tokens_set:
-                lexicon_type = "male_surnames"
-                mask_index = tokens.index("[MUŽSKÉ_PŘÍJMENÍ]")
-            elif "[ŽENSKÉ_PŘÍJMENÍ]" in tokens_set:
-                lexicon_type = "female_surnames"
-                mask_index = tokens.index("[ŽENSKÉ_PŘÍJMENÍ]")
-            else:
-                print("Unknown mask type.")
-                return
-
+            assert iterations >= 1, "Iterations must be >= 1."
             tokens[mask_index] = "[MASK]"
             template = " ".join(tokens)
             random_words = np.random.choice(self.lexicons[lexicon_type], iterations)
             for w in random_words:
-                word_forms.append(self._get_correct_word_form(w, template))
+                word_forms.extend(self._get_correct_word_form(w, template))
         
+        filled_sentences = []
         # Fill in the template
+        assert mask_index is not None, "mask_index is None."
         for form in word_forms:
+            if form is None:
+                continue
             tokens[mask_index] = form
-            print(" ".join(tokens))
+            sentence = " ".join(tokens)
+            filled_sentences.append(sentence)
+        return filled_sentences
 
     def _generate_suggestions(self, sentence, suggestions_count = 50):
         """
@@ -154,8 +152,7 @@ class Editor:
 
         # Get all the possible forms of the word
         generated = self.morphodita.generate(word)[0]
-        if generated == []:
-            return None
+        if not generated: return list()
 
         tag_words = defaultdict(list)
         for gen in generated:
@@ -181,19 +178,18 @@ class Editor:
                 tags.append(tag)
         
         # Word cannot be found in the given context
-        if not tags:
-            return None
+        if not tags: return list()
 
         # Find the most frequent tag in a tag list
         most_freq_tag = max(set(tags), key = tags.count)
-        return tag_words[most_freq_tag][0]
+        return tag_words[most_freq_tag]
 
 if __name__ == "__main__":
     e = Editor()
-    e.template(" V [FORMAT] je krásně .", "příroda")
-    for _ in range(1):
-        e.template(" Bez [ŽENSKÉ_JMÉNO] by se nám to dnes nepodařilo .")
-        e.template(" [MUŽSKÉ_JMÉNO] se má výborně .")
-        e.template(" Bydlí v [MĚSTO] .")
-        e.template(" Přestěhoval se sem v [MĚSÍC] .")
-        e.template(" Mám rád [MASK] .")
+    e.template(" V [FORMAT] je krásně .", ["příroda"])
+    for _ in range(2):
+        print(e.template(" Bez [ŽENSKÉ_JMÉNO] by se nám to dnes nepodařilo .", iterations=3))
+        print(e.template(" [MUŽSKÉ_JMÉNO] se má výborně ."))
+        print(e.template(" Bydlí v [MĚSTO] ."))
+        print(e.template(" Přestěhoval se sem v [MĚSÍC] ."))
+        print(e.template(" Mám rád [MASK] .", iterations=3))
