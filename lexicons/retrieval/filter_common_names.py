@@ -54,5 +54,9 @@ df_surnames.sort_values(by=[3000], inplace=True, ascending=False, ignore_index=T
 common_surnames = df_surnames[df_surnames[3000] > 1000]["PŘÍJMENÍ"].str.capitalize()
 common_surnames.drop(index=0, inplace=True)
 
+female_surnames = common_surnames[common_surnames.str.endswith(("á", "ů", "í"))].sort_values()
+male_surnames = common_surnames[~common_surnames.str.endswith(("á"))].sort_values()
+
 # Save common surnames to JSON file
-common_surnames.to_json("lexicons/surnames.json", orient="records", force_ascii=False, indent=4)
+female_surnames.to_json("lexicons/female_surnames.json", orient="records", force_ascii=False, indent=4)
+male_surnames.to_json("lexicons/male_surnames.json", orient="records", force_ascii=False, indent=4)
