@@ -23,14 +23,12 @@ class Editor:
                 lexicons[Path(f_name).stem] = load(json_f)
         return lexicons
 
-    def template(self, template, word = None):
+    def template(self, template, words = None, iterations = 1):
         """
-        Fill the template with the given word in the correct form.
-        TODO
-
+        TODO: Add description
         Parameters:
             template (str): str with one [MASK] token
-            word (str): word to be masked
+            word (List(str)): list of word to be filled in the template
         
         Returns:
             str: template with [MASK] replaced by word in correct form
@@ -39,10 +37,7 @@ class Editor:
 
         # Correct word form
         if "[MASK]" in tokens:
-            word_forms = self._get_correct_word_form(word, template)
-        
-        # !!!!!!!! Problém: Morfodita často neumí generovat formy pro slovo ze slovníku !!!!!!!!
-        # !!!!!!!! Možná musíme nastavit guesser !!!!!!!!
+            word_forms = self._get_correct_word_form(words, template)
         # Lexicon lookup
         else:
             lexicon_type = ""
@@ -80,17 +75,50 @@ class Editor:
             word_forms = self._get_correct_word_form(random_word, template)
            
         if word_forms == None:
-            if word != None:
-                print(f"Word {word} cannot be found in given context.")
+            if words != None:
+                print(f"Word {words} cannot be found in given context.")
             return
         
         for form in word_forms:
             print(template.replace("[MASK]", form))
 
+    def _generate_suggestions(self, sentence, suggestions_count = 50):
+        """
+        Generate suggestions for a given sentence using the language model.
+        
+        Parameters:
+            sentence (str): sentence containing [MASK] token
+            suggestions_count (int): number of suggestions to generate
+
+        Returns:
+            List(str): list of suggestions
+        """
+        assert suggestions_count > 1, "suggestions_count must be greater than 1"
+        assert sentence.count("[MASK]") == 1, "Only one [MASK] token is allowed in the sentence."
+
+        # Use language model to predict masked words
+        inputs = self.tokenizer(sentence, return_tensors="np")
+        token_logits = self.model(**inputs).logits
+
+        # Find the location of [MASK] and extract its logits
+        mask_token_index = np.argwhere(inputs["input_ids"] == self.tokenizer.mask_token_id)[0, 1]
+        mask_token_logits = token_logits[0, mask_token_index, :]
+
+        # Retunr the [MASK] candidates with the highest logits
+        # We negate the array before argsort to get the largest, not the smallest, logits
+        return np.argsort(-mask_token_logits)[:suggestions_count].tolist()
+        
     def _get_correct_word_form(self, word, context):
         """
         Determine the correct form of the word from the context. 
         Returns None if the word cannot be found in the context or MorphoDita cannot generate possible forms.
+
+        Parameters:
+            word (str): word to be corrected
+            context (str): context in which the word is used
+
+        Returns:
+            List(str): list of correct forms of the word
         """
         # Get all the possible forms of the word
         generated = self.morphodita.generate(word)[0]
@@ -101,15 +129,9 @@ class Editor:
         for gen in generated:
             tag_words[gen["tag"]].append(gen["form"])
 
-        # Use language model to predict words suitable for given context
-        inputs = self.tokenizer(context, return_tensors="np")
-        token_logits = self.model(**inputs).logits
-        # Find the location of [MASK] and extract its logits
-        mask_token_index = np.argwhere(inputs["input_ids"] == self.tokenizer.mask_token_id)[0, 1]
-        mask_token_logits = token_logits[0, mask_token_index, :]
-        # Pick the [MASK] candidates with the highest logits
-        # We negate the array before argsort to get the largest, not the smallest, logits
-        top_tokens = np.argsort(-mask_token_logits)[:50].tolist()
+        # Generate suggestions for the context
+        top_tokens = self._generate_suggestions(context, suggestions_count = 50)
+
         tokens = context.split()
         mask_index = tokens.index("[MASK]")
         sentences = []
@@ -125,7 +147,6 @@ class Editor:
             tag = context[mask_index]["tag"]
             if tag in tag_words:
                 tags.append(tag)
-                # print(tag, "\t", sentence[mask_index]["token"])
         
         # Word cannot be found in the given context
         if tags == []:
