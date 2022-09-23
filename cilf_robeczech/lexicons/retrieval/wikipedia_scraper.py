@@ -4,6 +4,11 @@ from bs4 import BeautifulSoup
 
 from cilf_robeczech.morph_api import MorphoDiTa
 
+"""
+Scrape lexicons of common words (colors, cities and months at the moment)
+from Wikipedia. Lemmatize it and save into jsons.
+"""
+
 colors_url = "https://cs.wikipedia.org/wiki/Seznam_barev"
 cities_url = "https://cs.wikipedia.org/wiki/Seznam_m%C4%9Bst_v_%C4%8Cesku_podle_po%C4%8Dtu_obyvatel"
 months_url = "https://cs.wikipedia.org/wiki/Kalend%C3%A1%C5%99n%C3%AD_m%C4%9Bs%C3%ADc"

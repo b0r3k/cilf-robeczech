@@ -1,5 +1,10 @@
 import pandas as pd
 
+"""
+Create lexicons of the most common Czech names and surnames.
+Names and surnames are divided by gender.
+"""
+
 # Data from archived files from 22.9.2018 version of MVČR website https://www.mvcr.cz/clanek/cetnost-jmen-a-prijmeni.aspx
 # https://web.archive.org/web/20180922062314/https://www.mvcr.cz/clanek/cetnost-jmen-a-prijmeni.aspx
 
@@ -17,6 +22,7 @@ import pandas as pd
 # 64997  VASILIKI-HELENA  0     0     0     0     0     0     0     0     0     0  ...     0     0     0     0     0     0     0     0     0     0     1
 # 64998  VASILIKI-ZUZANA  0     0     0     0     0     0     0     0     0     0  ...     0     0     0     0     0     0     0     0     0     0     1
 
+# ========================== Names ==========================
 # Load data from Excel file into Pandas DataFrame
 df_dict = pd.read_excel('lexicons/retrieval/četnost-jména-dnar.xls', sheet_name=None)
 df_names = pd.concat(df_dict.values())
@@ -29,7 +35,7 @@ female_mask = common_names.str.endswith(("e", "a", "y"))
 female_names = common_names[female_mask]
 male_names = common_names[~female_mask]
 
-# Misclassified names:
+# Correct misclassified names:
 misclas_female = pd.Series(['Dagmar', 'Doris', 'Edeltraud', 'Edith', 'Elen', 'Elisabeth', 'Elizabeth', 'Ester', 
 'Ingeborg', 'Ingrid', 'Isabel', 'Jenifer', 'Jennifer', 'Karin', 'Katrin', 'Lilian', 'Lilien', 'Margit', 'Miriam', 
 'Natali', 'Nicol', 'Nikol', 'Noemi', 'Ruth', 'Sarah', 'Vivien'])
@@ -37,7 +43,6 @@ misclas_male = pd.Series(['Danny'])
 
 female_names = pd.concat([female_names, misclas_female])
 female_names = female_names[~female_names.isin(misclas_male)].sort_values()
-
 male_names = pd.concat([male_names, misclas_male])
 male_names = male_names[~male_names.isin(pd.concat([misclas_female, pd.Series(['Nezjištěno'])]))].sort_values()
 
@@ -45,6 +50,7 @@ male_names = male_names[~male_names.isin(pd.concat([misclas_female, pd.Series(['
 female_names.to_json("lexicons/female_names.json", orient="records", force_ascii=False, indent=4)
 male_names.to_json("lexicons/male_names.json", orient="records", force_ascii=False, indent=4)
 
+# ========================== Surnames ==========================
 # Load data from Excel file into Pandas DataFrame
 df_dict = pd.read_excel('lexicons/retrieval/četnost-příjmení-dnar.xls', sheet_name=None)
 df_surnames = pd.concat(df_dict.values())

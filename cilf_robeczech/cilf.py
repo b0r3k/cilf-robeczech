@@ -7,6 +7,13 @@ from transformers import TFAutoModelForMaskedLM, AutoTokenizer
 from pathlib import Path
 
 class Editor:
+    """
+    Class for generating Czech sentences from templates.
+    Templates can be filled in multiple ways 
+        – providing a list of words to be filled in,
+        – specifying a predefined lexicon to take the words from, 
+        – letting the Masked Language Model provide suggestions.
+    """
     def __init__(self):
         """
         Load the RobeCzech model, download from HF if necessary. 

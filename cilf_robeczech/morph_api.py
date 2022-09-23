@@ -31,6 +31,9 @@ class MorphoDiTa:
         return r.json()["result"]
 
     def lemmatize(self, word):
+        """
+        Query MorphoDiTa for the lemma of a word.
+        """
         self.lemma_params["data"] = word
         r = requests.get(self.url + "tag", params=self.lemma_params)
         return r.json()["result"][0][0]["lemma"]
