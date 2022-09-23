@@ -1,8 +1,9 @@
 from collections import defaultdict
 from glob import glob
 from json import load
-from morph_api import MorphoDiTa
+from cilf_robeczech.morph_api import MorphoDiTa
 import numpy as np
+import os
 from transformers import TFAutoModelForMaskedLM, AutoTokenizer
 from pathlib import Path
 
@@ -45,7 +46,7 @@ class Editor:
         Load all lexicons from the lexicons directory into memory. 
         """
         lexicons = {}
-        for f_name in glob('lexicons/*.json'):
+        for f_name in glob(os.path.join(os.path.dirname(__file__), 'lexicons/*.json')):
             with open(f_name, 'r') as json_f:
                 lexicons[Path(f_name).stem] = load(json_f)
         return lexicons
