@@ -9,6 +9,10 @@ class MorphoDiTa:
         self.params = {
             "output": "json"
         }
+        self.lemma_params = {
+            "convert_tagset": "strip_lemma_id",
+            "output": "json"
+        }
 
     def tag(self, text):
         """
@@ -26,7 +30,13 @@ class MorphoDiTa:
         r = requests.get(self.url + "generate", params=self.params)
         return r.json()["result"]
 
+    def lemmatize(self, word):
+        self.lemma_params["data"] = word
+        r = requests.get(self.url + "tag", params=self.lemma_params)
+        return r.json()["result"][0][0]["lemma"]
+
 if __name__ == "__main__":
     mt = MorphoDiTa()
     print(mt.tag("Tohle je hračka . Bylo nás pět ."))
     print(mt.generate("hračka"))
+    print(mt.lemmatize("bílá"))
