@@ -6,6 +6,7 @@ import numpy as np
 import os
 from transformers import TFAutoModelForMaskedLM, AutoTokenizer
 from pathlib import Path
+from typing import List
 
 class Editor:
     """
@@ -51,7 +52,7 @@ class Editor:
                 lexicons[Path(f_name).stem] = load(json_f)
         return lexicons
 
-    def template(self, template, words = None, iterations = 1):
+    def template(self, template: str, words: List[str] = None, iterations: int = 1) -> List[str]:
         """
         Fill in a template. The template contains "[FORMAT]", "[MASK]", or one of the lexicon tokens.
         [FORMAT] - list of words to fill in the template must by provided in the `words` argument.
@@ -124,7 +125,7 @@ class Editor:
             filled_sentences.append(sentence)
         return filled_sentences
 
-    def _generate_suggestions(self, sentence, suggestions_count = 50):
+    def _generate_suggestions(self, sentence: str, suggestions_count: int = 50) -> List[str]:
         """
         Generate suggestions for a given sentence using the masked language model.
         
@@ -151,7 +152,7 @@ class Editor:
         top = np.argsort(-mask_token_logits)[:suggestions_count].tolist()
         return [self.tokenizer.decode([result]).strip() for result in top]
         
-    def _get_correct_word_form(self, word, context):
+    def _get_correct_word_form(self, word: str, context: str) -> List[str]:
         """
         Determine the correct form of the word from the context. 
         Returns None if the word cannot be found in the context or MorphoDita cannot generate possible forms.
